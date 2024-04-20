@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  vk_db:
+    image: "postgres:13"
+    container_name: vk_db
+    restart: "always"
+    env_file: postgres_db/.env
+    ports:
+      - "5437:5432"
+    networks:
+      - vk_backend_network
+    volumes:
+      - ./postgresql/data:/var/lib/postgresql/data
+
+  vk_redis:
+    image: "redis:alpine"
+    container_name: vk_redis
+    restart: "always"
+    networks:
+      - vk_backend_network
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/data:/data
+
+  vk_bot:
+    build: .
+    container_name: vk_bot
+    restart: "always"
+    networks:
+      - vk_backend_network
+    depends_on:
+      - vk_db
+      - vk_redis
+    ports:
+      - "8000:80"
+    env_file:
+      - .env
+
+
+networks:
+  vk_backend_network:
+    driver: bridge
