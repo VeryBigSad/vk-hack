@@ -1,22 +1,31 @@
 import logging
-from fastapi import APIRouter, HTTPException, Header, Depends
-from aiogram import Bot
-from core.wlui.context import WLUIContextVar
-from configs.settings import env_parameters
 
+from fastapi import APIRouter, status
+from pydantic import BaseModel
 
-def authorize_user(auth_token: str = Header(None)):
-    if auth_token != env_parameters.AUTH_TOKEN:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    return True
-
-
-router = APIRouter(dependencies=[Depends(authorize_user)])
+router = APIRouter(prefix="/api/v1", tags=["v1"])
 logger = logging.getLogger(__name__)
-wnl = WLUIContextVar()
-bot = Bot(env_parameters.TELEGRAM_BOT_TOKEN, parse_mode="HTML")
 
 
-@router.post("/fuck")
-async def test_handler():
-    return {"yo": 1}
+class UserUpdateData(BaseModel):
+    timstamp: int
+    geo_id: int
+    domain_id: int
+    path_id: int
+    user_agent: str
+
+
+class UserPredictionsResponse(BaseModel):
+    gender: int
+    age: int
+
+
+@router.get("/user/{user_id}/predictions", response_model=UserPredictionsResponse)
+async def get_predictions(user_id: int):
+    return {"gender": 1, "age": 42}
+
+
+@router.put("/user/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def update_user(user_id: int, body: UserUpdateData):
+    return 
+    
