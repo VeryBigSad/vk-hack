@@ -6,17 +6,20 @@ import user_agents
 from core.redis import delete_by_key, get_by_key, set_by_key
 from core.webhooks.models import UserPredictionsResponse, UserUpdateData
 from fastapi import APIRouter, status
+from core.ml import Model_Predictor
 
 router = APIRouter(prefix="/api/v1", tags=["v1"])
 logger = logging.getLogger(__name__)
 
+predictor = Model_Predictor()
 
 @router.get("/user/{user_id}/predictions", response_model=UserPredictionsResponse)
 async def get_predictions(user_id: int):
-    user_data = await get_by_key(f"user:{user_id}")
+    user_data = json.loads(await get_by_key(f"user:{user_id}"))
     await delete_by_key(f"user:{user_id}")
     logger.info(f"User data for id={user_id}: {user_data}")
-    return {"gender": 1, "age": 42}
+    result = predictor.predict(user_data)
+    return result
 
 
 @router.put("/user/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
