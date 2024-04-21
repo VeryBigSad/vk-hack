@@ -3,7 +3,7 @@ import logging
 from typing import Any
 
 import user_agents
-from core.redis import get_by_key, set_by_key
+from core.redis import delete_by_key, get_by_key, set_by_key
 from core.webhooks.models import UserPredictionsResponse, UserUpdateData
 from fastapi import APIRouter, status
 
@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 @router.get("/user/{user_id}/predictions", response_model=UserPredictionsResponse)
 async def get_predictions(user_id: int):
     user_data = await get_by_key(f"user:{user_id}")
+    await delete_by_key(f"user:{user_id}")
     logger.info(f"User data for id={user_id}: {user_data}")
     return {"gender": 1, "age": 42}
 
